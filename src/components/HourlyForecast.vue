@@ -18,7 +18,6 @@
         <div class="forecast-item-inner">
           <div class="forecast-time">{{ hour.time }}</div>
           <div class="forecast-icon">
-            <!-- We'll implement proper icons later -->
             <div
               v-if="hour.condition === 'Sunny'"
               class="w-10 h-10 bg-yellow-400 rounded-full mx-auto"
@@ -93,11 +92,12 @@ export default defineComponent({
 .hourly-forecast {
   padding: 1rem;
   border-radius: 1rem;
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: rgba(200, 200, 200, 0.9);
   color: #333;
+  height: 366px;
 
   &.dark-mode {
-    background-color: rgba(30, 30, 30, 0.9);
+    background-color: rgba(44, 44, 44, 0.9);
     color: #fff;
   }
 
@@ -106,6 +106,21 @@ export default defineComponent({
     overflow-x: auto;
     padding: 0.5rem 0;
     gap: 1rem;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+    justify-content: space-between;
+    &::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background-color: rgba(0, 0, 0, 0.2);
+      border-radius: 6px;
+    }
 
     .forecast-item {
       flex: 1;
@@ -115,7 +130,7 @@ export default defineComponent({
       border-radius: 1rem;
       padding: 0.75rem 0.5rem;
       transition: all 0.3s ease;
-
+      height: 17rem;
       background-color: #e0e0e0;
       color: #333;
 
@@ -164,6 +179,8 @@ export default defineComponent({
         flex-direction: column;
         align-items: center;
         gap: 0.5rem;
+        justify-content: space-around;
+        height: -webkit-fill-available;
       }
 
       .forecast-time {

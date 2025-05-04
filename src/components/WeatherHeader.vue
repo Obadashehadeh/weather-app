@@ -1,5 +1,5 @@
 <template>
-  <div class="weather-header w-lg" :class="{ 'dark-mode': isDarkMode }">
+  <div class="weather-header" :class="{ 'dark-mode': isDarkMode }">
     <div class="city-container">
       <h1 class="text-3xl font-bold mb-2">{{ city }}</h1>
     </div>
@@ -20,6 +20,14 @@ export default defineComponent({
     city: {
       type: String,
       default: "Athens",
+    },
+    sunriseTime: {
+      type: String,
+      default: "06:37 AM",
+    },
+    sunsetTime: {
+      type: String,
+      default: "20:37 PM",
     },
   },
   setup() {
@@ -68,7 +76,7 @@ export default defineComponent({
 .weather-header {
   padding: 1.5rem;
   border-radius: 1rem;
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: rgba(200, 200, 200, 0.9);
   color: #333;
   height: 100%;
   display: flex;
@@ -77,7 +85,7 @@ export default defineComponent({
   align-items: center;
 
   &.dark-mode {
-    background-color: rgba(30, 30, 30, 0.9);
+    background-color: rgba(44, 44, 44, 0.9);
     color: #fff;
   }
 

@@ -8,7 +8,6 @@
         class="forecast-item"
       >
         <div class="weather-icon">
-          <!-- We'll implement proper icons later -->
           <div v-if="day.condition === 'Sunny'" class="icon-sunny"></div>
           <div
             v-else-if="day.condition === 'Partly Cloudy'"
@@ -17,8 +16,8 @@
           <div v-else class="icon-rainy"></div>
         </div>
         <div class="forecast-day-info">
-          <div class="day-temp">{{ day.temperature }}°C</div>
           <div class="day-name">{{ day.day }}, {{ day.date }}</div>
+          <div class="day-temp">{{ day.temperature }}°C</div>
         </div>
       </div>
     </div>
@@ -71,11 +70,11 @@ export default defineComponent({
 .daily-forecast {
   padding: 1.5rem;
   border-radius: 1rem;
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: rgba(200, 200, 200, 0.9);
   color: #333;
-
+  height: 100%;
   &.dark-mode {
-    background-color: rgba(30, 30, 30, 0.9);
+    background-color: rgba(44, 44, 44, 0.9);
     color: #fff;
   }
 
@@ -83,7 +82,7 @@ export default defineComponent({
     display: flex;
     flex-direction: column;
     gap: 1rem;
-
+    justify-content: space-around;
     .forecast-item {
       display: flex;
       align-items: center;

@@ -22,7 +22,6 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-/* Base styles */
 * {
   margin: 0;
   padding: 0;
@@ -38,15 +37,14 @@ body {
 #app {
   min-height: 100vh;
   transition: background-color 0.3s ease, color 0.3s ease;
-  background: linear-gradient(135deg, #6dd5ed, #2193b0);
+  background: linear-gradient(124deg, #d9d9d9, #292929);
 
   &.dark-mode {
-    background: linear-gradient(135deg, #283048, #859398);
+    background: linear-gradient(135deg, #444444, #111111);
     color: #f5f5f5;
   }
 }
 
-/* Utility classes */
 .flex {
   display: flex;
 }

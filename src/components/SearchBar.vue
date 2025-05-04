@@ -7,14 +7,16 @@
         @click="toggleTheme"
       >
         <div class="toggle-switch">
-          <div class="toggle-indicator"></div>
+          <div class="toggle-indicator">
+            <i
+              :class="isDarkMode ? 'fas fa-moon' : 'fas fa-sun'"
+              class="mode-icon"
+            ></i>
+          </div>
         </div>
-        <span class="sr-only">{{
-          isDarkMode ? "Light Mode" : "Dark Mode"
-        }}</span>
       </button>
       <span class="mode-text">{{
-        isDarkMode ? "Light Mode" : "Dark Mode"
+        isDarkMode ? "Dark Mode" : "Light Mode"
       }}</span>
     </div>
     <div class="search-input-container">
@@ -26,10 +28,11 @@
         @keyup.enter="handleSearch"
       />
       <button class="search-button" @click="handleSearch">
-        <i class="fa-solid fa-magnifying-glass fa-3xs"></i>
+        <i class="fas fa-search"></i>
       </button>
     </div>
     <button class="location-button" @click="getCurrentLocation">
+      <i class="fas fa-location-dot"></i>
       <span>Current Location</span>
     </button>
   </div>
@@ -76,9 +79,15 @@ export default defineComponent({
 <style lang="scss" scoped>
 .search-bar {
   display: flex;
-  gap: 3.75rem;
+  gap: 1rem;
   margin-bottom: 1rem;
   width: 100%;
+  align-items: center;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 1rem;
+  }
 
   &.dark-mode {
     .search-input {
@@ -92,12 +101,12 @@ export default defineComponent({
 
     .search-button,
     .location-button {
-      background-color: rgba(70, 70, 70, 0);
+      background-color: rgba(70, 70, 70, 0.9);
       color: #fff;
 
-      //&:hover {
-      //  background-color: rgba(90, 90, 90, 0.9);
-      //}
+      &:hover {
+        background-color: rgba(90, 90, 90, 0.9);
+      }
     }
   }
 
@@ -108,15 +117,15 @@ export default defineComponent({
 
   .search-input {
     width: 100%;
-    padding: 0.75rem 3rem;
-    padding-right: 2.5rem;
+    padding: 0.75rem 1rem;
+    padding-inline: 3rem;
     border-radius: 2rem;
     border: none;
-    background-color: rgba(255, 255, 255, 0.9);
+    background-color: rgba(200, 200, 200, 0.9);
     font-size: 0.875rem;
     outline: none;
-    transition: box-shadow 0.2s;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 
     &:focus {
       box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.5);
@@ -125,35 +134,56 @@ export default defineComponent({
 
   .search-button {
     position: absolute;
-    left: 1.5rem;
-    top: 45%;
+    left: 10px;
+    top: 50%;
     transform: translateY(-50%);
     background: none;
     border: none;
     cursor: pointer;
-    opacity: 1.7;
-    i {
-      color: #e5e7eb;
-    }
+    font-size: 1rem;
+    color: #4a5568;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s;
+
     &:hover {
-      opacity: 1;
+      background-color: rgba(0, 0, 0, 0.05);
     }
   }
 
   .location-button {
-    padding: 0.75rem 1rem;
+    padding: 0.75rem 1.25rem;
     border-radius: 2rem;
     border: none;
     background-color: #4cd964;
     color: white;
     font-size: 0.875rem;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: all 0.3s ease;
     font-weight: 500;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+
+    i {
+      font-size: 0.75rem;
+    }
 
     &:hover {
       background-color: #3cb853;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    &:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     }
 
     .dark-mode & {
@@ -163,22 +193,32 @@ export default defineComponent({
         background-color: #2a8f3c;
       }
     }
+
+    @media (max-width: 768px) {
+      width: 100%;
+      justify-content: center;
+    }
   }
 
   .theme-toggle-container {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    flex-direction: column;
+
+    @media (max-width: 768px) {
+      width: 100%;
+      justify-content: center;
+    }
+
     .theme-toggle {
-      width: 4rem;
-      height: 1.5rem;
-      border-radius: 0.75rem;
+      width: 3.5rem;
+      height: 1.75rem;
+      border-radius: 0.875rem;
       background-color: #e0e0e0;
       border: none;
       cursor: pointer;
-      padding: 0.125rem;
-      transition: background-color 0.3s ease;
+      padding: 0.25rem;
+      transition: all 0.3s ease;
 
       &.dark-mode {
         background-color: #2196f3;
@@ -200,9 +240,21 @@ export default defineComponent({
         background-color: white;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
         transition: transform 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
 
         .dark-mode & {
-          transform: translateX(2.5rem);
+          transform: translateX(1.75rem);
+        }
+
+        .mode-icon {
+          font-size: 0.7rem;
+          color: #f39c12;
+
+          .dark-mode & {
+            color: #3498db;
+          }
         }
       }
     }
@@ -215,18 +267,6 @@ export default defineComponent({
       .dark-mode & {
         color: #fff;
       }
-    }
-
-    .sr-only {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      margin: -1px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      white-space: nowrap;
-      border: 0;
     }
   }
 }

@@ -1,7 +1,7 @@
 <template>
   <div class="home" :class="{ 'dark-mode': isDarkMode }">
     <div class="container mx-auto px-4 py-6">
-      <div class="flex justify-between items-center mb-4">
+      <div class="search-container mb-4">
         <SearchBar
           @search="searchCity"
           @get-current-location="getCurrentLocation"
@@ -19,20 +19,15 @@
       </div>
 
       <div v-else class="weather-grid">
-        <div class="grid-row top-section">
-          <div class="grid-item header w-lg">
-            <WeatherHeader :city="weather.city" />
+        <div class="grid-row header-row">
+          <div class="grid-item header">
+            <WeatherHeader
+              :city="weather.city"
+              :sunrise-time="weather.sunrise"
+              :sunset-time="weather.sunset"
+            />
           </div>
-
-          <!--          <div class="grid-item current">-->
-          <!--            <CurrentWeather-->
-          <!--              :temperature="weather.temperature"-->
-          <!--              :feels-like="weather.feelsLike"-->
-          <!--              :condition="weather.condition"-->
-          <!--            />-->
-          <!--          </div>-->
-
-          <div class="grid-item details">
+          <div class="grid-item details w-full">
             <WeatherDetails
               :sunrise-time="weather.sunrise"
               :sunset-time="weather.sunset"
@@ -40,11 +35,14 @@
               :wind-speed="weather.windSpeed"
               :pressure="weather.pressure"
               :uv-index="weather.uvIndex"
+              :temperature="weather.temperature"
+              :feels-like="weather.feelsLike"
+              :condition="weather.condition"
             />
           </div>
         </div>
 
-        <div class="grid-row bottom-section">
+        <div class="grid-row forecast-row">
           <div class="grid-item daily">
             <DailyForecast :forecast-data="weather.dailyForecast" />
           </div>
@@ -62,7 +60,6 @@
 import { defineComponent, computed, onMounted } from "vue";
 import { useStore } from "vuex";
 import WeatherHeader from "@/components/WeatherHeader.vue";
-// import CurrentWeather from "@/components/CurrentWeather.vue";
 import WeatherDetails from "@/components/WeatherDetails.vue";
 import HourlyForecast from "@/components/HourlyForecast.vue";
 import DailyForecast from "@/components/DailyForecast.vue";
@@ -104,7 +101,6 @@ export default defineComponent({
 
     onMounted(() => {
       store.dispatch("theme/initTheme");
-
       searchCity("Athens");
     });
 
@@ -124,57 +120,77 @@ export default defineComponent({
 <style lang="scss" scoped>
 .home {
   min-height: 100vh;
-  background-color: #f5f5f5;
   transition: background-color 0.3s ease;
 
   &.dark-mode {
-    background-color: #1a1a1a;
+    background-color: transparent;
   }
 
   .container {
     max-width: 1200px;
+
+    @media (min-width: 768px) {
+      padding-top: 2rem;
+    }
+  }
+
+  .search-container {
+    max-width: 1000px;
+    margin: 0 auto;
   }
 
   .weather-grid {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 1.5rem;
+    max-width: 1000px;
+    margin: 0 auto;
 
     .grid-row {
       display: flex;
-      gap: 1rem;
+      gap: 1.5rem;
 
       @media (max-width: 768px) {
         flex-direction: column;
       }
     }
 
-    .top-section {
-      .header,
-      .current {
-        height: fit-content;
+    .header-row {
+      .header {
+        flex: 2;
+        height: 330px;
       }
 
       .details {
-        width: 33%;
-        @media (max-width: 768px) {
-          width: 100%;
-        }
+        flex: 3;
       }
     }
-    .bottom-section {
-      flex-direction: row;
+
+    .forecast-row {
+      .daily {
+        flex: 1;
+        height: 366px;
+      }
+
+      .hourly {
+        flex: 2;
+        height: 366px;
+      }
     }
 
     .grid-item {
       border-radius: 1rem;
       overflow: hidden;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      background-color: white;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+      &:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+      }
 
       .dark-mode & {
-        background-color: #2d2d2d;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
       }
     }
   }
@@ -185,6 +201,8 @@ export default defineComponent({
     align-items: center;
     justify-content: center;
     height: 50vh;
+    max-width: 1000px;
+    margin: 0 auto;
 
     .loading-spinner {
       width: 50px;
@@ -213,6 +231,8 @@ export default defineComponent({
     align-items: center;
     justify-content: center;
     height: 50vh;
+    max-width: 1000px;
+    margin: 0 auto;
 
     p {
       color: #e74c3c;
@@ -226,6 +246,7 @@ export default defineComponent({
       border: none;
       border-radius: 4px;
       cursor: pointer;
+      transition: background-color 0.2s;
 
       &:hover {
         background-color: #2980b9;
