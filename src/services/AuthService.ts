@@ -1,4 +1,3 @@
-// src/services/AuthService.ts
 import axios from "axios";
 
 const API_URL = process.env.VUE_APP_API_URL || "http://localhost:5000";
@@ -10,7 +9,6 @@ class AuthService {
         email,
         password,
       });
-
       if (response.data.accessToken) {
         localStorage.setItem("token", response.data.accessToken);
         localStorage.setItem("user", JSON.stringify(response.data.user));
@@ -18,7 +16,7 @@ class AuthService {
 
       return response.data;
     } catch (error) {
-      console.error("Login error:", error);
+      console.error("Login error details:", error);
       throw error;
     }
   }
@@ -30,7 +28,6 @@ class AuthService {
         email,
         password,
       });
-
       if (response.data.accessToken) {
         localStorage.setItem("token", response.data.accessToken);
         localStorage.setItem("user", JSON.stringify(response.data.user));
@@ -38,7 +35,7 @@ class AuthService {
 
       return response.data;
     } catch (error) {
-      console.error("Registration error:", error);
+      console.error("Registration error details:", error);
       throw error;
     }
   }
@@ -51,7 +48,13 @@ class AuthService {
   getCurrentUser() {
     const userStr = localStorage.getItem("user");
     if (userStr) {
-      return JSON.parse(userStr);
+      try {
+        return JSON.parse(userStr);
+      } catch (e) {
+        console.error("Error parsing user from localStorage:", e);
+        localStorage.removeItem("user");
+        return null;
+      }
     }
     return null;
   }

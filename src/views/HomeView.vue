@@ -19,9 +19,6 @@
       </div>
 
       <div v-else class="weather-grid">
-        <!--        <div v-if="isAuthenticated" class="user-profile-container mb-4">-->
-        <!--          <UserProfile />-->
-        <!--        </div>-->
         <div class="grid-row header-row">
           <div class="grid-item header">
             <WeatherHeader
@@ -32,15 +29,15 @@
           </div>
           <div class="grid-item details w-full">
             <WeatherDetails
+              :temperature="weather.temperature"
+              :feels-like="weather.feelsLike"
+              :condition="weather.condition"
               :sunrise-time="weather.sunrise"
               :sunset-time="weather.sunset"
               :humidity="weather.humidity"
               :wind-speed="weather.windSpeed"
               :pressure="weather.pressure"
               :uv-index="weather.uvIndex"
-              :temperature="weather.temperature"
-              :feels-like="weather.feelsLike"
-              :condition="weather.condition"
             />
           </div>
         </div>
@@ -60,15 +57,13 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, onMounted } from "vue";
+import { defineComponent, computed, onMounted, ref } from "vue";
 import { useStore } from "vuex";
 import WeatherHeader from "@/components/WeatherHeader.vue";
 import WeatherDetails from "@/components/WeatherDetails.vue";
 import HourlyForecast from "@/components/HourlyForecast.vue";
 import DailyForecast from "@/components/DailyForecast.vue";
 import SearchBar from "@/components/SearchBar.vue";
-// import UserProfile from "@/components/UserProfile.vue";
-import { Location } from "@/store/modules/weather";
 
 export default defineComponent({
   name: "HomeView",
@@ -78,10 +73,11 @@ export default defineComponent({
     HourlyForecast,
     DailyForecast,
     SearchBar,
-    // UserProfile,
   },
   setup() {
     const store = useStore();
+    // Flag to prevent multiple API calls
+    const initialLoadDone = ref(false);
 
     const isDarkMode = computed(() => store.state.theme.darkMode);
     const isAuthenticated = computed(
@@ -93,10 +89,12 @@ export default defineComponent({
     const error = computed(() => store.state.weather.error);
 
     const searchCity = (city: string) => {
+      console.log(`Searching for city: ${city}`);
       store.dispatch("weather/fetchWeatherByCity", city);
     };
 
     const getCurrentLocation = () => {
+      console.log("Getting current location");
       store.dispatch("weather/fetchWeatherByLocation");
     };
 
@@ -108,16 +106,35 @@ export default defineComponent({
       }
     };
 
-    onMounted(() => {
-      store.dispatch("theme/initTheme");
-      store.dispatch("auth/checkAuth");
-
-      if (isAuthenticated.value) {
-        store.dispatch("weather/fetchSavedLocations");
+    onMounted(async () => {
+      console.log("HomeView mounted");
+      if (initialLoadDone.value) {
+        console.log("Initial load already done, skipping");
+        return;
       }
 
-      // Default city on load
+      // Initialize theme
+      store.dispatch("theme/initTheme");
+
+      // Check auth status
+      store.dispatch("auth/checkAuth");
+
+      // Fetch saved locations only once if authenticated
+      if (isAuthenticated.value) {
+        console.log("User is authenticated, fetching saved locations");
+        try {
+          await store.dispatch("weather/fetchSavedLocations");
+        } catch (error) {
+          console.error("Error fetching saved locations:", error);
+        }
+      }
+
+      // Load default city
+      console.log("Loading default city (Athens)");
       searchCity("Athens");
+
+      // Mark initial load as done
+      initialLoadDone.value = true;
     });
 
     return {
@@ -152,11 +169,6 @@ export default defineComponent({
   }
 
   .search-container {
-    max-width: 1000px;
-    margin: 0 auto;
-  }
-
-  .user-profile-container {
     max-width: 1000px;
     margin: 0 auto;
   }

@@ -83,7 +83,6 @@ import { defineComponent, ref, computed } from "vue";
 import { useStore } from "vuex";
 import router from "@/router";
 import { AxiosError } from "axios";
-import bcrypt from "bcryptjs";
 
 export default defineComponent({
   name: "LoginForm",
@@ -105,8 +104,6 @@ export default defineComponent({
 
     const handleSubmit = async () => {
       try {
-        // eslint-disable-next-line no-debugger
-        debugger;
         errorMessage.value = "";
 
         if (isLogin.value) {
@@ -124,15 +121,28 @@ export default defineComponent({
 
         await store.dispatch("weather/fetchSavedLocations");
 
-        router.push("/home");
+        console.log("Login successful, redirecting to home");
+        router.push({ name: "home" });
       } catch (error) {
+        console.error("Authentication error:", error);
         const axiosError = error as AxiosError<any>;
-        errorMessage.value =
-          axiosError.response?.data?.message ||
-          (typeof axiosError.response?.data === "string"
-            ? axiosError.response.data
-            : null) ||
-          "Authentication failed. Please check your credentials.";
+
+        if (axiosError.response) {
+          const responseData = axiosError.response.data;
+          if (typeof responseData === "object" && responseData.message) {
+            errorMessage.value = responseData.message;
+          } else if (typeof responseData === "string") {
+            errorMessage.value = responseData;
+          } else {
+            errorMessage.value =
+              "Authentication failed. Please check your credentials.";
+          }
+        } else if (axiosError.request) {
+          errorMessage.value =
+            "Network error. Please check your internet connection.";
+        } else {
+          errorMessage.value = "An error occurred. Please try again.";
+        }
       }
     };
 

@@ -9,45 +9,50 @@ const apiClient = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+  timeout: 10000,
 });
 
-// Request interceptor for adding token
 apiClient.interceptors.request.use(
   (config) => {
     const token = AuthService.getToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      console.log("Adding auth token to request");
+    } else {
+      console.log("No auth token available");
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    return Promise.reject(error);
+  }
 );
 
-// Response interceptor to handle errors
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log(
+      `Response received from ${response.config.url}: Status ${response.status}`
+    );
+    return response;
+  },
   (error) => {
     if (error.response) {
       const { status } = error.response;
-
       if (status === 401) {
-        // Token expired or invalid
         AuthService.logout();
         router.push("/");
       }
 
       if (status === 403) {
-        // Permission denied
         console.error("Permission denied");
       }
-
       if (status === 500) {
         console.error("Server error");
       }
     } else if (error.request) {
-      console.error("Network error - no response received");
+      console.error("Network error - no response received:", error.request);
     } else {
-      console.error("Error setting up request", error.message);
+      console.error("Error setting up request:", error.message);
     }
 
     return Promise.reject(error);

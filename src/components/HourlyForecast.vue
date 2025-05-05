@@ -8,22 +8,29 @@
         class="forecast-item"
         :class="{
           active: hour.active,
-          daytime:
-            hour.condition === 'Sunny' || hour.condition === 'Partly Cloudy',
-          nighttime: hour.condition === 'Clear',
-          cloudy: hour.condition === 'Cloudy',
-          rainy: hour.condition === 'Rainy' || hour.condition === 'Showers',
+          daytime: hour.condition === 'Sunny' || hour.condition === 'Clear',
+          nighttime: hour.condition === 'Clear' && isNightTime(hour.time),
+          cloudy: hour.condition === 'Clouds' || hour.condition === 'Cloudy',
+          rainy:
+            hour.condition === 'Rain' ||
+            hour.condition === 'Rainy' ||
+            hour.condition === 'Drizzle' ||
+            hour.condition === 'Showers',
         }"
       >
         <div class="forecast-item-inner">
           <div class="forecast-time">{{ hour.time }}</div>
           <div class="forecast-icon">
             <div
-              v-if="hour.condition === 'Sunny'"
+              v-if="hour.condition === 'Sunny' || hour.condition === 'Clear'"
               class="w-10 h-10 bg-yellow-400 rounded-full mx-auto"
             ></div>
             <div
-              v-else-if="hour.condition === 'Partly Cloudy'"
+              v-else-if="
+                hour.condition === 'Clouds' ||
+                hour.condition === 'Cloudy' ||
+                hour.condition === 'Partly Cloudy'
+              "
               class="w-10 h-10 bg-gray-300 rounded-full mx-auto"
             ></div>
             <div
@@ -68,11 +75,11 @@ export default defineComponent({
         {
           time: "18:00",
           temperature: 27,
-          condition: "Partly Cloudy",
+          condition: "Clouds",
           windSpeed: 2,
         },
-        { time: "21:00", temperature: 25, condition: "Rainy", windSpeed: 3 },
-        { time: "00:00", temperature: 22, condition: "Sunny", windSpeed: 3 },
+        { time: "21:00", temperature: 25, condition: "Rain", windSpeed: 3 },
+        { time: "00:00", temperature: 22, condition: "Clear", windSpeed: 3 },
       ],
     },
   },
@@ -81,8 +88,14 @@ export default defineComponent({
 
     const isDarkMode = computed(() => store.state.theme?.darkMode || false);
 
+    const isNightTime = (timeString: string) => {
+      const hour = parseInt(timeString.split(":")[0]);
+      return hour >= 20 || hour < 6;
+    };
+
     return {
       isDarkMode,
+      isNightTime,
     };
   },
 });

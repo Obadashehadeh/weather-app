@@ -1,10 +1,8 @@
-// src/store/modules/weather.ts
 import { Module } from "vuex";
 import { RootState } from "@/store";
 import WeatherService from "@/services/WeatherService";
 import LocationService from "@/services/LocationService";
 import { AxiosError } from "axios";
-import { ApiErrorResponse } from "@/types/api";
 
 export interface HourlyForecast {
   time: string;
@@ -46,6 +44,8 @@ export interface WeatherState {
   savedLocations: Location[];
   loading: boolean;
   error: string | null;
+  lastUpdated: number;
+  fetchingLocations: boolean;
 }
 
 const initialState: WeatherState = {
@@ -111,6 +111,8 @@ const initialState: WeatherState = {
   savedLocations: [],
   loading: false,
   error: null,
+  lastUpdated: 0,
+  fetchingLocations: false,
 };
 
 const weatherModule: Module<WeatherState, RootState> = {
@@ -139,18 +141,45 @@ const weatherModule: Module<WeatherState, RootState> = {
     SET_ERROR(state, error: string | null) {
       state.error = error;
     },
+    SET_LAST_UPDATED(state, timestamp: number) {
+      state.lastUpdated = timestamp;
+    },
+    SET_FETCHING_LOCATIONS(state, fetching: boolean) {
+      state.fetchingLocations = fetching;
+    },
   },
 
   actions: {
-    async fetchWeatherByCity({ commit }, city: string) {
+    async fetchWeatherByCity({ commit, state }, city: string) {
+      // Check if we already have recent data for this city (within last 10 minutes)
+      const now = Date.now();
+      const tenMinutesInMs = 10 * 60 * 1000;
+
+      if (
+        state.city === city &&
+        now - state.lastUpdated < tenMinutesInMs &&
+        state.lastUpdated !== 0
+      ) {
+        console.log(
+          `Using cached weather data for ${city} (last updated ${Math.round(
+            (now - state.lastUpdated) / 1000
+          )} seconds ago)`
+        );
+        return;
+      }
+
       try {
         commit("SET_LOADING", true);
         commit("SET_ERROR", null);
+        console.log(`Fetching weather data for city: ${city}`);
 
         const weatherData = await WeatherService.getWeatherByCity(city);
         commit("SET_WEATHER_DATA", weatherData);
+        commit("SET_LAST_UPDATED", now);
         commit("SET_LOADING", false);
+        console.log(`Weather data received for ${city}`);
       } catch (error) {
+        console.error("Error fetching weather:", error);
         const axiosError = error as AxiosError<any>;
         commit(
           "SET_ERROR",
@@ -161,13 +190,25 @@ const weatherModule: Module<WeatherState, RootState> = {
       }
     },
 
-    async fetchWeatherByLocation({ commit }) {
+    async fetchWeatherByLocation({ commit, state }) {
+      const now = Date.now();
+      const tenMinutesInMs = 10 * 60 * 1000;
+
+      if (now - state.lastUpdated < tenMinutesInMs && state.lastUpdated !== 0) {
+        console.log(
+          `Using cached weather data (last updated ${Math.round(
+            (now - state.lastUpdated) / 1000
+          )} seconds ago)`
+        );
+        return;
+      }
       try {
         commit("SET_LOADING", true);
         commit("SET_ERROR", null);
 
         const weatherData = await WeatherService.fetchWeatherByLocation();
         commit("SET_WEATHER_DATA", weatherData);
+        commit("SET_LAST_UPDATED", now);
         commit("SET_LOADING", false);
       } catch (error) {
         const axiosError = error as AxiosError<any>;
@@ -183,23 +224,33 @@ const weatherModule: Module<WeatherState, RootState> = {
       }
     },
 
-    async fetchSavedLocations({ commit }) {
+    async fetchSavedLocations({ commit, state }) {
+      // Prevent multiple simultaneous calls
+      if (state.fetchingLocations) {
+        console.log("Already fetching locations, skipping duplicate call");
+        return;
+      }
+
       try {
-        commit("SET_LOADING", true);
+        commit("SET_FETCHING_LOCATIONS", true);
+        console.log("Fetching saved locations");
 
         const locations = await LocationService.getSavedLocations();
         commit("SET_SAVED_LOCATIONS", locations);
-        commit("SET_LOADING", false);
+        console.log(`Fetched ${locations.length} saved locations`);
       } catch (error) {
         console.error("Error fetching saved locations:", error);
-        commit("SET_LOADING", false);
+      } finally {
+        commit("SET_FETCHING_LOCATIONS", false);
       }
     },
 
     async saveLocation({ commit }, locationData: Partial<Location>) {
       try {
+        console.log(`Saving location: ${locationData.name}`);
         const savedLocation = await LocationService.saveLocation(locationData);
         commit("ADD_SAVED_LOCATION", savedLocation);
+        console.log(`Location saved: ${savedLocation.name}`);
         return savedLocation;
       } catch (error) {
         console.error("Error saving location:", error);
@@ -209,8 +260,10 @@ const weatherModule: Module<WeatherState, RootState> = {
 
     async removeLocation({ commit }, locationId: string) {
       try {
+        console.log(`Removing location with ID: ${locationId}`);
         await LocationService.deleteLocation(locationId);
         commit("REMOVE_SAVED_LOCATION", locationId);
+        console.log("Location removed successfully");
       } catch (error) {
         console.error("Error removing location:", error);
         throw error;
@@ -221,10 +274,12 @@ const weatherModule: Module<WeatherState, RootState> = {
       try {
         // If we have a location object with name property
         if (typeof location === "object" && location.name) {
+          console.log(`Selecting location by object: ${location.name}`);
           await dispatch("fetchWeatherByCity", location.name);
         }
         // If we just have a location name as string
         else if (typeof location === "string") {
+          console.log(`Selecting location by string: ${location}`);
           await dispatch("fetchWeatherByCity", location);
         }
       } catch (error) {

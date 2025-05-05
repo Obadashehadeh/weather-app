@@ -19,6 +19,7 @@
         isDarkMode ? "Dark Mode" : "Light Mode"
       }}</span>
     </div>
+
     <div class="search-input-container">
       <input
         type="text"
@@ -31,18 +32,32 @@
         <i class="fas fa-search"></i>
       </button>
     </div>
-    <button class="location-button" @click="getCurrentLocation">
-      <i class="fas fa-location-dot"></i>
-      <span>Current Location</span>
+
+    <button
+      class="location-button"
+      @click="getCurrentLocation"
+      :disabled="gettingLocation"
+    >
+      <i
+        class="fas"
+        :class="gettingLocation ? 'fa-spinner fa-spin' : 'fa-location-dot'"
+      ></i>
+      <span>{{
+        gettingLocation ? "Getting Location..." : "Current Location"
+      }}</span>
     </button>
+
     <button
       v-if="loggedIn"
       class="save-button"
       @click="saveCurrentLocation"
-      :disabled="!currentCity"
+      :disabled="!currentCity || savingLocation"
     >
-      <i class="fas fa-bookmark"></i>
-      <span>Save Location</span>
+      <i
+        class="fas"
+        :class="savingLocation ? 'fa-spinner fa-spin' : 'fa-bookmark'"
+      ></i>
+      <span>{{ savingLocation ? "Saving..." : "Save Location" }}</span>
     </button>
   </div>
 </template>
@@ -57,6 +72,8 @@ export default defineComponent({
   setup(_, { emit }) {
     const store = useStore();
     const searchQuery = ref("");
+    const gettingLocation = ref(false);
+    const savingLocation = ref(false);
 
     const isDarkMode = computed(() => store.state.theme?.darkMode || false);
     const loggedIn = computed(() => store.getters["auth/isAuthenticated"]);
@@ -64,25 +81,55 @@ export default defineComponent({
 
     const handleSearch = () => {
       if (searchQuery.value.trim()) {
-        emit("search", searchQuery.value);
-        searchQuery.value = "";
+        console.log(`Searching for city: ${searchQuery.value}`);
+        emit("search", searchQuery.value.trim());
+
+        // Clear search query after search
+        setTimeout(() => {
+          searchQuery.value = "";
+        }, 300);
       }
     };
 
     const getCurrentLocation = () => {
+      if (gettingLocation.value) return;
+
+      gettingLocation.value = true;
+      console.log("Getting current location from SearchBar component");
+
+      // Emit event to parent component
       emit("getCurrentLocation");
+
+      // Reset loading state after timeout
+      setTimeout(() => {
+        gettingLocation.value = false;
+      }, 5000); // 5 second timeout as fallback
     };
 
     const toggleTheme = () => {
       store.dispatch("theme/toggleDarkMode");
     };
 
-    const saveCurrentLocation = () => {
-      if (currentCity.value) {
-        store.dispatch("weather/saveLocation", {
+    const saveCurrentLocation = async () => {
+      if (!currentCity.value || savingLocation.value) return;
+
+      try {
+        savingLocation.value = true;
+        console.log(`Saving current location: ${currentCity.value}`);
+
+        await store.dispatch("weather/saveLocation", {
           name: currentCity.value,
           country: "", // Could be enhanced with country data
         });
+
+        console.log("Location saved successfully");
+      } catch (error) {
+        console.error("Error saving location:", error);
+      } finally {
+        // Add slight delay to show feedback
+        setTimeout(() => {
+          savingLocation.value = false;
+        }, 1000);
       }
     };
 
@@ -95,6 +142,8 @@ export default defineComponent({
       loggedIn,
       currentCity,
       saveCurrentLocation,
+      gettingLocation,
+      savingLocation,
     };
   },
 });

@@ -7,6 +7,16 @@
       <div class="text-6xl font-bold">{{ currentTime }}</div>
       <div class="text-sm mt-1">{{ currentDate }}</div>
     </div>
+    <div class="sun-info">
+      <div class="sun-time sunrise">
+        <i class="fas fa-sun icon"></i>
+        <span>Sunrise: {{ sunriseTime }}</span>
+      </div>
+      <div class="sun-time sunset">
+        <i class="fas fa-moon icon"></i>
+        <span>Sunset: {{ sunsetTime }}</span>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -58,9 +68,11 @@ export default defineComponent({
         weekday: "long",
         day: "numeric",
         month: "short",
+        year: "numeric",
       };
       return now.value.toLocaleDateString("en-US", options);
     });
+
     const isDarkMode = computed(() => store.state.theme?.darkMode || false);
 
     return {
@@ -81,7 +93,7 @@ export default defineComponent({
   height: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
 
   &.dark-mode {
@@ -91,6 +103,7 @@ export default defineComponent({
 
   .city-container {
     margin-bottom: 0.5rem;
+    text-align: center;
   }
 
   .time-container {
@@ -102,6 +115,7 @@ export default defineComponent({
 
   .sun-info {
     display: flex;
+    width: 100%;
     justify-content: space-around;
     margin-top: auto;
 
@@ -109,16 +123,19 @@ export default defineComponent({
       display: flex;
       flex-direction: column;
       align-items: center;
+      padding: 0.5rem;
 
       .icon {
-        margin-right: 0.25rem;
-        font-size: 1rem;
+        margin-bottom: 0.5rem;
+        font-size: 1.25rem;
       }
 
-      .time {
-        font-size: 0.875rem;
-        font-weight: 500;
-        margin-top: 0.25rem;
+      &.sunrise .icon {
+        color: #f39c12;
+      }
+
+      &.sunset .icon {
+        color: #3498db;
       }
     }
   }

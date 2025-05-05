@@ -8,12 +8,25 @@
         class="forecast-item"
       >
         <div class="weather-icon">
-          <div v-if="day.condition === 'Sunny'" class="icon-sunny"></div>
           <div
-            v-else-if="day.condition === 'Partly Cloudy'"
+            v-if="day.condition === 'Sunny' || day.condition === 'Clear'"
+            class="icon-sunny"
+          ></div>
+          <div
+            v-else-if="
+              day.condition === 'Partly Cloudy' || day.condition === 'Clouds'
+            "
             class="icon-partly-cloudy"
           ></div>
-          <div v-else class="icon-rainy"></div>
+          <div
+            v-else-if="
+              day.condition === 'Rain' ||
+              day.condition === 'Rainy' ||
+              day.condition === 'Drizzle'
+            "
+            class="icon-rainy"
+          ></div>
+          <div v-else class="icon-default"></div>
         </div>
         <div class="forecast-day-info">
           <div class="day-name">{{ day.day }}, {{ day.date }}</div>
@@ -49,8 +62,8 @@ export default defineComponent({
         },
         { day: "Saturday", date: "2 Sep", temperature: 22, condition: "Sunny" },
         { day: "Sunday", date: "3 Sep", temperature: 27, condition: "Sunny" },
-        { day: "Monday", date: "4 Sep", temperature: 18, condition: "Rainy" },
-        { day: "Tuesday", date: "5 Sep", temperature: 16, condition: "Rainy" },
+        { day: "Monday", date: "4 Sep", temperature: 18, condition: "Rain" },
+        { day: "Tuesday", date: "5 Sep", temperature: 16, condition: "Rain" },
       ],
     },
   },
@@ -113,6 +126,13 @@ export default defineComponent({
           width: 2rem;
           height: 2rem;
           background-color: #93c5fd;
+          border-radius: 50%;
+        }
+
+        .icon-default {
+          width: 2rem;
+          height: 2rem;
+          background-color: #d1d5db;
           border-radius: 50%;
         }
       }
