@@ -3,7 +3,7 @@ import { RootState } from "@/store";
 import axios from "axios";
 
 const API_KEY = "YOUR_WEATHER_API_KEY";
-const BASE_URL = "https://api.weatherapi.com/v1";
+const BASE_URL = "http://localhost:5000/";
 
 export interface WeatherData {
   city: string;

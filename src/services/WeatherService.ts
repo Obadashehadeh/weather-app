@@ -1,7 +1,7 @@
 import axios from "axios";
 import { WeatherResponse, formatWeatherData } from "@/types/weather";
 
-const API_URL = "http://localhost:3000/weather";
+const API_URL = "http://localhost:5000/weather";
 
 class WeatherService {
   async getWeatherByCity(city: string) {
