@@ -60,7 +60,6 @@ class WeatherService {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           try {
-            console.log(position);
             const { latitude, longitude } = position.coords;
 
             const weatherResponse = await apiClient.get(`/weather`, {
