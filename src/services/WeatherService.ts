@@ -1,22 +1,52 @@
-import axios from "axios";
-import { WeatherResponse, formatWeatherData } from "@/types/weather";
+// src/services/WeatherService.ts
+import apiClient from "./api";
 
-const API_URL = "http://localhost:5000/weather";
+interface Coordinates {
+  latitude: number;
+  longitude: number;
+}
+
+interface WeatherData {
+  city: string;
+  temperature: number;
+  feelsLike: number;
+  condition: string;
+  humidity: number;
+  windSpeed: number;
+  pressure: number;
+  uvIndex: number;
+  sunrise: string;
+  sunset: string;
+  hourlyForecast: Array<{
+    time: string;
+    temperature: number;
+    condition: string;
+    windSpeed: number;
+    active: boolean;
+  }>;
+  dailyForecast: Array<{
+    day: string;
+    date: string;
+    temperature: number;
+    condition: string;
+  }>;
+}
 
 class WeatherService {
-  async getWeatherByCity(city: string) {
+  async getWeatherByCity(city: string): Promise<WeatherData> {
     try {
-      await axios.post(`${API_URL}/history/${encodeURIComponent(city)}`);
+      const weatherResponse = await apiClient.get(`/weather`, {
+        params: { location: city },
+      });
 
-      const externalResponse = await axios.get<WeatherResponse>(
-        `https://api.weatherapi.com/v1/forecast.json?key=${
-          process.env.VUE_APP_WEATHER_API_KEY
-        }&q=${encodeURIComponent(city)}&days=5&aqi=no&alerts=no`
+      const forecastResponse = await apiClient.get(`/weather/forecast`, {
+        params: { location: city },
+      });
+
+      const formattedData = this.formatWeatherData(
+        weatherResponse.data,
+        forecastResponse.data
       );
-
-      const formattedData = formatWeatherData(externalResponse.data);
-
-      await axios.post(API_URL, formattedData);
 
       return formattedData;
     } catch (error) {
@@ -25,14 +55,101 @@ class WeatherService {
     }
   }
 
-  async getSearchHistory() {
-    try {
-      const response = await axios.get(`${API_URL}/history`);
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching search history:", error);
-      throw error;
-    }
+  async fetchWeatherByLocation(): Promise<WeatherData> {
+    return new Promise<WeatherData>((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          try {
+            console.log(position);
+            const { latitude, longitude } = position.coords;
+
+            const weatherResponse = await apiClient.get(`/weather`, {
+              params: { lat: latitude, lon: longitude },
+            });
+
+            const forecastResponse = await apiClient.get(`/weather/forecast`, {
+              params: { lat: latitude, lon: longitude },
+            });
+
+            const formattedData = this.formatWeatherData(
+              weatherResponse.data,
+              forecastResponse.data
+            );
+
+            resolve(formattedData);
+          } catch (error) {
+            reject(error);
+          }
+        },
+        (error) => {
+          reject(error);
+        }
+      );
+    });
+  }
+
+  formatWeatherData(weatherData: any, forecastData: any): WeatherData {
+    const dailyForecast = forecastData.list
+      .filter((_: any, index: number) => index % 8 === 0)
+      .slice(0, 5)
+      .map((day: any) => {
+        const date = new Date(day.dt * 1000);
+        return {
+          day: date.toLocaleDateString("en-US", { weekday: "long" }),
+          date: date.toLocaleDateString("en-US", {
+            day: "numeric",
+            month: "short",
+          }),
+          temperature: Math.round(day.main.temp),
+          condition: day.weather[0].main,
+        };
+      });
+
+    const hourlyForecast = forecastData.list
+      .slice(0, 5)
+      .map((hour: any, index: number) => {
+        const date = new Date(hour.dt * 1000);
+        return {
+          time: date.toLocaleTimeString("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+          }),
+          temperature: Math.round(hour.main.temp),
+          condition: hour.weather[0].main,
+          windSpeed: Math.round(hour.wind.speed),
+          active: index === 0,
+        };
+      });
+
+    return {
+      city: weatherData.name,
+      temperature: Math.round(weatherData.main.temp),
+      feelsLike: Math.round(weatherData.main.feels_like),
+      condition: weatherData.weather[0].main,
+      humidity: weatherData.main.humidity,
+      windSpeed: Math.round(weatherData.wind.speed),
+      pressure: Math.round(weatherData.main.pressure),
+      uvIndex: 5,
+      sunrise: new Date(weatherData.sys.sunrise * 1000).toLocaleTimeString(
+        "en-US",
+        {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        }
+      ),
+      sunset: new Date(weatherData.sys.sunset * 1000).toLocaleTimeString(
+        "en-US",
+        {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        }
+      ),
+      hourlyForecast,
+      dailyForecast,
+    };
   }
 }
 

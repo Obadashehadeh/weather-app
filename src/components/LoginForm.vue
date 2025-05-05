@@ -11,6 +11,21 @@
       </div>
 
       <form @submit.prevent="handleSubmit" class="login-form">
+        <div v-if="errorMessage" class="error-message">
+          {{ errorMessage }}
+        </div>
+
+        <div v-if="!isLogin" class="form-group">
+          <label for="name">Name</label>
+          <input
+            type="text"
+            id="name"
+            v-model="name"
+            required
+            placeholder="Enter your name"
+          />
+        </div>
+
         <div class="form-group">
           <label for="email">Email</label>
           <input
@@ -42,8 +57,13 @@
           </div>
         </div>
 
-        <button type="submit" class="submit-button">
-          {{ isLogin ? "Login" : "Register" }}
+        <button type="submit" class="submit-button" :disabled="loading">
+          <span v-if="loading">
+            <i class="fas fa-spinner fa-spin"></i> Processing...
+          </span>
+          <span v-else>
+            {{ isLogin ? "Login" : "Register" }}
+          </span>
         </button>
       </form>
 
@@ -62,6 +82,8 @@
 import { defineComponent, ref, computed } from "vue";
 import { useStore } from "vuex";
 import router from "@/router";
+import { AxiosError } from "axios";
+import bcrypt from "bcryptjs";
 
 export default defineComponent({
   name: "LoginForm",
@@ -69,36 +91,60 @@ export default defineComponent({
     const store = useStore();
     const email = ref("");
     const password = ref("");
+    const name = ref("");
     const isLogin = ref(true);
     const showPassword = ref(false);
+    const errorMessage = ref("");
 
     const isDarkMode = computed(() => store.state.theme.darkMode);
+    const loading = computed(() => store.state.auth.loading);
 
     const toggleTheme = () => {
       store.dispatch("theme/toggleDarkMode");
     };
 
-    const handleSubmit = () => {
-      console.log("Form submitted", {
-        mode: isLogin.value ? "login" : "register",
-        email: email.value,
-        password: password.value,
-      });
+    const handleSubmit = async () => {
+      try {
+        // eslint-disable-next-line no-debugger
+        debugger;
+        errorMessage.value = "";
 
-      store.commit("auth/SET_USER", {
-        email: email.value,
-        name: email.value.split("@")[0],
-      });
+        if (isLogin.value) {
+          await store.dispatch("auth/login", {
+            email: email.value,
+            password: password.value,
+          });
+        } else {
+          await store.dispatch("auth/register", {
+            name: name.value,
+            email: email.value,
+            password: password.value,
+          });
+        }
 
-      router.push("/home");
+        await store.dispatch("weather/fetchSavedLocations");
+
+        router.push("/home");
+      } catch (error) {
+        const axiosError = error as AxiosError<any>;
+        errorMessage.value =
+          axiosError.response?.data?.message ||
+          (typeof axiosError.response?.data === "string"
+            ? axiosError.response.data
+            : null) ||
+          "Authentication failed. Please check your credentials.";
+      }
     };
 
     return {
       email,
       password,
+      name,
       isLogin,
       showPassword,
       isDarkMode,
+      errorMessage,
+      loading,
       toggleTheme,
       handleSubmit,
     };
@@ -156,6 +202,15 @@ export default defineComponent({
         color: #fff;
       }
     }
+  }
+
+  .error-message {
+    background-color: rgba(255, 0, 0, 0.1);
+    color: #d9534f;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
   }
 
   .login-form {
@@ -225,15 +280,24 @@ export default defineComponent({
       cursor: pointer;
       transition: all 0.2s;
 
-      &:hover {
+      &:hover:not(:disabled) {
         background-color: #3cb853;
+      }
+
+      &:disabled {
+        background-color: #a3e2ad;
+        cursor: not-allowed;
       }
 
       .dark-mode & {
         background-color: #3cb853;
 
-        &:hover {
+        &:hover:not(:disabled) {
           background-color: #2a8f3c;
+        }
+
+        &:disabled {
+          background-color: #2a6b30;
         }
       }
     }

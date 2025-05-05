@@ -35,6 +35,15 @@
       <i class="fas fa-location-dot"></i>
       <span>Current Location</span>
     </button>
+    <button
+      v-if="loggedIn"
+      class="save-button"
+      @click="saveCurrentLocation"
+      :disabled="!currentCity"
+    >
+      <i class="fas fa-bookmark"></i>
+      <span>Save Location</span>
+    </button>
   </div>
 </template>
 
@@ -50,6 +59,8 @@ export default defineComponent({
     const searchQuery = ref("");
 
     const isDarkMode = computed(() => store.state.theme?.darkMode || false);
+    const loggedIn = computed(() => store.getters["auth/isAuthenticated"]);
+    const currentCity = computed(() => store.state.weather?.city);
 
     const handleSearch = () => {
       if (searchQuery.value.trim()) {
@@ -65,12 +76,25 @@ export default defineComponent({
     const toggleTheme = () => {
       store.dispatch("theme/toggleDarkMode");
     };
+
+    const saveCurrentLocation = () => {
+      if (currentCity.value) {
+        store.dispatch("weather/saveLocation", {
+          name: currentCity.value,
+          country: "", // Could be enhanced with country data
+        });
+      }
+    };
+
     return {
       searchQuery,
       handleSearch,
       getCurrentLocation,
       isDarkMode,
       toggleTheme,
+      loggedIn,
+      currentCity,
+      saveCurrentLocation,
     };
   },
 });
@@ -100,11 +124,12 @@ export default defineComponent({
     }
 
     .search-button,
-    .location-button {
+    .location-button,
+    .save-button {
       background-color: rgba(70, 70, 70, 0.9);
       color: #fff;
 
-      &:hover {
+      &:hover:not(:disabled) {
         background-color: rgba(90, 90, 90, 0.9);
       }
     }
@@ -155,7 +180,8 @@ export default defineComponent({
     }
   }
 
-  .location-button {
+  .location-button,
+  .save-button {
     padding: 0.75rem 1.25rem;
     border-radius: 2rem;
     border: none;
@@ -175,7 +201,7 @@ export default defineComponent({
       font-size: 0.75rem;
     }
 
-    &:hover {
+    &:hover:not(:disabled) {
       background-color: #3cb853;
       transform: translateY(-1px);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
@@ -186,17 +212,45 @@ export default defineComponent({
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     }
 
+    &:disabled {
+      background-color: #a3e2ad;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+      opacity: 0.7;
+    }
+
     .dark-mode & {
       background-color: #3cb853;
 
-      &:hover {
+      &:hover:not(:disabled) {
         background-color: #2a8f3c;
+      }
+
+      &:disabled {
+        background-color: #2a6b30;
       }
     }
 
     @media (max-width: 768px) {
       width: 100%;
       justify-content: center;
+    }
+  }
+
+  .save-button {
+    background-color: #2193b0;
+
+    &:hover:not(:disabled) {
+      background-color: #1c7a96;
+    }
+
+    .dark-mode & {
+      background-color: #1c7a96;
+
+      &:hover:not(:disabled) {
+        background-color: #146680;
+      }
     }
   }
 

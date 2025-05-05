@@ -16,17 +16,20 @@
 
     <div class="saved-locations">
       <h3 class="section-title">Saved Locations</h3>
-      <div class="location-list">
+      <div v-if="loading" class="loading-indicator">
+        <i class="fas fa-spinner fa-spin"></i> Loading locations...
+      </div>
+      <div v-else class="location-list">
         <div
-          v-for="(location, index) in savedLocations"
-          :key="index"
+          v-for="location in savedLocations"
+          :key="location._id"
           class="location-item"
         >
-          <div class="location-name">{{ location }}</div>
+          <div class="location-name">{{ location.name }}</div>
           <button @click="selectLocation(location)" class="select-button">
             <i class="fas fa-location-arrow"></i>
           </button>
-          <button @click="removeLocation(index)" class="remove-button">
+          <button @click="removeLocation(location._id)" class="remove-button">
             <i class="fas fa-times"></i>
           </button>
         </div>
@@ -39,20 +42,21 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed } from "vue";
+import { defineComponent, computed, onMounted } from "vue";
 import { useStore } from "vuex";
+import { Location } from "@/store/modules/weather";
 
 export default defineComponent({
   name: "UserProfile",
-  emits: ["selectLocation"],
-  setup(_, { emit }) {
+  setup() {
     const store = useStore();
 
     const user = computed(() => store.getters["auth/currentUser"]);
     const isDarkMode = computed(() => store.state.theme.darkMode);
-    const savedLocations = computed(() => {
-      return store.state.weather.savedLocations || [];
-    });
+    const savedLocations = computed(
+      () => store.getters["weather/getSavedLocations"]
+    );
+    const loading = computed(() => store.state.weather.loading);
 
     const initials = computed(() => {
       if (user.value && user.value.name) {
@@ -65,18 +69,23 @@ export default defineComponent({
       store.dispatch("auth/logout");
     };
 
-    const selectLocation = (location: string) => {
-      emit("selectLocation", location);
+    const selectLocation = (location: Location) => {
+      store.dispatch("weather/selectLocation", location);
     };
 
-    const removeLocation = (index: number) => {
-      store.dispatch("weather/removeSavedLocation", index);
+    const removeLocation = (locationId: string) => {
+      store.dispatch("weather/removeLocation", locationId);
     };
+
+    onMounted(() => {
+      store.dispatch("weather/fetchSavedLocations");
+    });
 
     return {
       user,
       isDarkMode,
       savedLocations,
+      loading,
       initials,
       logout,
       selectLocation,
@@ -168,6 +177,12 @@ export default defineComponent({
       font-size: 1.125rem;
       font-weight: 600;
       margin-bottom: 1rem;
+    }
+
+    .loading-indicator {
+      text-align: center;
+      padding: 1rem;
+      color: #6c757d;
     }
 
     .location-list {

@@ -19,6 +19,9 @@
       </div>
 
       <div v-else class="weather-grid">
+        <!--        <div v-if="isAuthenticated" class="user-profile-container mb-4">-->
+        <!--          <UserProfile />-->
+        <!--        </div>-->
         <div class="grid-row header-row">
           <div class="grid-item header">
             <WeatherHeader
@@ -64,6 +67,8 @@ import WeatherDetails from "@/components/WeatherDetails.vue";
 import HourlyForecast from "@/components/HourlyForecast.vue";
 import DailyForecast from "@/components/DailyForecast.vue";
 import SearchBar from "@/components/SearchBar.vue";
+// import UserProfile from "@/components/UserProfile.vue";
+import { Location } from "@/store/modules/weather";
 
 export default defineComponent({
   name: "HomeView",
@@ -73,11 +78,15 @@ export default defineComponent({
     HourlyForecast,
     DailyForecast,
     SearchBar,
+    // UserProfile,
   },
   setup() {
     const store = useStore();
 
     const isDarkMode = computed(() => store.state.theme.darkMode);
+    const isAuthenticated = computed(
+      () => store.getters["auth/isAuthenticated"]
+    );
 
     const weather = computed(() => store.state.weather);
     const loading = computed(() => store.state.weather.loading);
@@ -101,11 +110,19 @@ export default defineComponent({
 
     onMounted(() => {
       store.dispatch("theme/initTheme");
+      store.dispatch("auth/checkAuth");
+
+      if (isAuthenticated.value) {
+        store.dispatch("weather/fetchSavedLocations");
+      }
+
+      // Default city on load
       searchCity("Athens");
     });
 
     return {
       isDarkMode,
+      isAuthenticated,
       weather,
       loading,
       error,
@@ -135,6 +152,11 @@ export default defineComponent({
   }
 
   .search-container {
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  .user-profile-container {
     max-width: 1000px;
     margin: 0 auto;
   }
