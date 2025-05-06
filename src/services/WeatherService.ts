@@ -1,4 +1,3 @@
-// src/services/WeatherService.ts
 import { WeatherAPI } from "@/api/API";
 
 export interface WeatherData {
@@ -106,7 +105,7 @@ class WeatherService {
     });
 
     const hourlyForecast = data.forecast.forecastday[0].hour
-      .filter((_: any, index: number) => index % 3 === 0) // Every 3 hours
+      .filter((_: any, index: number) => index % 3 === 0)
       .map((hour: any, index: number) => {
         const date = new Date(hour.time);
         return {
@@ -119,7 +118,7 @@ class WeatherService {
           condition: hour.condition.text,
           iconUrl: this.getFullIconUrl(hour.condition.icon),
           windSpeed: Math.round(hour.wind_kph),
-          active: index === 0, // Make first hour active
+          active: index === 0,
         };
       });
 

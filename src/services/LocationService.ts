@@ -1,4 +1,3 @@
-// src/services/LocationService.ts
 import { LocationsAPI } from "@/api/API";
 import { Location } from "@/store/modules/weather";
 

@@ -1,7 +1,7 @@
 import axios from "axios";
 import AuthService from "@/services/AuthService";
 
-const API_URL = process.env.VUE_APP_API_URL || "http://localhost:9000";
+export const API_URL = process.env.VUE_APP_API_URL || "http://localhost:3000";
 
 const apiClient = axios.create({
   baseURL: API_URL,

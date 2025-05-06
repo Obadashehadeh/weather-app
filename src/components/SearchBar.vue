@@ -81,10 +81,8 @@ export default defineComponent({
 
     const handleSearch = () => {
       if (searchQuery.value.trim()) {
-        console.log(`Searching for city: ${searchQuery.value}`);
         emit("search", searchQuery.value.trim());
 
-        // Clear search query after search
         setTimeout(() => {
           searchQuery.value = "";
         }, 300);
@@ -95,15 +93,10 @@ export default defineComponent({
       if (gettingLocation.value) return;
 
       gettingLocation.value = true;
-      console.log("Getting current location from SearchBar component");
-
-      // Emit event to parent component
       emit("getCurrentLocation");
-
-      // Reset loading state after timeout
       setTimeout(() => {
         gettingLocation.value = false;
-      }, 5000); // 5 second timeout as fallback
+      }, 10000);
     };
 
     const toggleTheme = () => {
@@ -115,18 +108,14 @@ export default defineComponent({
 
       try {
         savingLocation.value = true;
-        console.log(`Saving current location: ${currentCity.value}`);
 
         await store.dispatch("weather/saveLocation", {
           name: currentCity.value,
-          country: "", // Could be enhanced with country data
+          country: "",
         });
-
-        console.log("Location saved successfully");
       } catch (error) {
         console.error("Error saving location:", error);
       } finally {
-        // Add slight delay to show feedback
         setTimeout(() => {
           savingLocation.value = false;
         }, 1000);

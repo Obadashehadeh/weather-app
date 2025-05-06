@@ -116,7 +116,7 @@ export default defineComponent({
         try {
           await store.dispatch("weather/fetchSavedLocations");
         } catch (error) {
-          // Handle error silently
+          // error
         }
       }
 

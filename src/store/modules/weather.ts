@@ -1,4 +1,3 @@
-// src/store/modules/weather.ts
 import { Module } from "vuex";
 import { RootState } from "@/store";
 import WeatherService from "@/services/WeatherService";
@@ -155,10 +154,10 @@ const weatherModule: Module<WeatherState, RootState> = {
         commit("SET_LAST_UPDATED", now);
         commit("SET_LOADING", false);
       } catch (error) {
-        const axiosError = error as AxiosError<any>;
+        const typedError = error as Error;
         commit(
           "SET_ERROR",
-          axiosError.response?.data?.message || "Failed to fetch weather data"
+          typedError.message || "Failed to fetch weather data for your location"
         );
         commit("SET_LOADING", false);
         throw error;
@@ -175,7 +174,7 @@ const weatherModule: Module<WeatherState, RootState> = {
         const locations = await LocationService.getSavedLocations();
         commit("SET_SAVED_LOCATIONS", locations);
       } catch (error) {
-        // Handle error silently
+        // error
       } finally {
         commit("SET_FETCHING_LOCATIONS", false);
       }
