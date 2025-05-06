@@ -1,35 +1,20 @@
 // src/services/LocationService.ts
-import apiClient from "./api";
+import { LocationsAPI } from "@/api/API";
 import { Location } from "@/store/modules/weather";
 
 class LocationService {
   async getSavedLocations(): Promise<Location[]> {
-    try {
-      const response = await apiClient.get<Location[]>(`/locations`);
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching saved locations:", error);
-      throw error;
-    }
+    const response = await LocationsAPI.getSavedLocations();
+    return response.data;
   }
 
   async saveLocation(location: Partial<Location>): Promise<Location> {
-    try {
-      const response = await apiClient.post<Location>(`/locations`, location);
-      return response.data;
-    } catch (error) {
-      console.error("Error saving location:", error);
-      throw error;
-    }
+    const response = await LocationsAPI.saveLocation(location);
+    return response.data;
   }
 
   async deleteLocation(id: string): Promise<void> {
-    try {
-      await apiClient.delete(`/locations/${id}`);
-    } catch (error) {
-      console.error("Error deleting location:", error);
-      throw error;
-    }
+    await LocationsAPI.deleteLocation(id);
   }
 }
 

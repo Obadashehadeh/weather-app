@@ -1,3 +1,4 @@
+// src/store/modules/weather.ts
 import { Module } from "vuex";
 import { RootState } from "@/store";
 import WeatherService from "@/services/WeatherService";
@@ -8,6 +9,7 @@ export interface HourlyForecast {
   time: string;
   temperature: number;
   condition: string;
+  iconUrl: string;
   windSpeed: number;
   active: boolean;
 }
@@ -17,6 +19,7 @@ export interface DailyForecast {
   date: string;
   temperature: number;
   condition: string;
+  iconUrl: string;
 }
 
 export interface Location {
@@ -33,6 +36,7 @@ export interface WeatherState {
   temperature: number;
   feelsLike: number;
   condition: string;
+  iconUrl: string;
   humidity: number;
   windSpeed: number;
   pressure: number;
@@ -53,61 +57,15 @@ const initialState: WeatherState = {
   temperature: 24,
   feelsLike: 22,
   condition: "Sunny",
+  iconUrl: "",
   humidity: 41,
   windSpeed: 2,
   pressure: 997,
   uvIndex: 8,
   sunrise: "06:37 AM",
   sunset: "20:37 PM",
-  hourlyForecast: [
-    {
-      time: "12:00",
-      temperature: 26,
-      condition: "Sunny",
-      windSpeed: 3,
-      active: true,
-    },
-    {
-      time: "15:00",
-      temperature: 27,
-      condition: "Sunny",
-      windSpeed: 2,
-      active: false,
-    },
-    {
-      time: "18:00",
-      temperature: 27,
-      condition: "Partly Cloudy",
-      windSpeed: 2,
-      active: false,
-    },
-    {
-      time: "21:00",
-      temperature: 25,
-      condition: "Rainy",
-      windSpeed: 3,
-      active: false,
-    },
-    {
-      time: "00:00",
-      temperature: 22,
-      condition: "Sunny",
-      windSpeed: 3,
-      active: false,
-    },
-  ],
-  dailyForecast: [
-    {
-      day: "Friday",
-      date: "1 Sep",
-      temperature: 20,
-      condition: "Partly Cloudy",
-    },
-    { day: "Saturday", date: "2 Sep", temperature: 22, condition: "Sunny" },
-    { day: "Sunday", date: "3 Sep", temperature: 27, condition: "Sunny" },
-    { day: "Monday", date: "4 Sep", temperature: 18, condition: "Rainy" },
-    { day: "Tuesday", date: "5 Sep", temperature: 16, condition: "Rainy" },
-  ],
+  hourlyForecast: [],
+  dailyForecast: [],
   savedLocations: [],
   loading: false,
   error: null,
@@ -151,7 +109,6 @@ const weatherModule: Module<WeatherState, RootState> = {
 
   actions: {
     async fetchWeatherByCity({ commit, state }, city: string) {
-      // Check if we already have recent data for this city (within last 10 minutes)
       const now = Date.now();
       const tenMinutesInMs = 10 * 60 * 1000;
 
@@ -160,26 +117,18 @@ const weatherModule: Module<WeatherState, RootState> = {
         now - state.lastUpdated < tenMinutesInMs &&
         state.lastUpdated !== 0
       ) {
-        console.log(
-          `Using cached weather data for ${city} (last updated ${Math.round(
-            (now - state.lastUpdated) / 1000
-          )} seconds ago)`
-        );
         return;
       }
 
       try {
         commit("SET_LOADING", true);
         commit("SET_ERROR", null);
-        console.log(`Fetching weather data for city: ${city}`);
 
         const weatherData = await WeatherService.getWeatherByCity(city);
         commit("SET_WEATHER_DATA", weatherData);
         commit("SET_LAST_UPDATED", now);
         commit("SET_LOADING", false);
-        console.log(`Weather data received for ${city}`);
       } catch (error) {
-        console.error("Error fetching weather:", error);
         const axiosError = error as AxiosError<any>;
         commit(
           "SET_ERROR",
@@ -195,11 +144,6 @@ const weatherModule: Module<WeatherState, RootState> = {
       const tenMinutesInMs = 10 * 60 * 1000;
 
       if (now - state.lastUpdated < tenMinutesInMs && state.lastUpdated !== 0) {
-        console.log(
-          `Using cached weather data (last updated ${Math.round(
-            (now - state.lastUpdated) / 1000
-          )} seconds ago)`
-        );
         return;
       }
       try {
@@ -212,9 +156,6 @@ const weatherModule: Module<WeatherState, RootState> = {
         commit("SET_LOADING", false);
       } catch (error) {
         const axiosError = error as AxiosError<any>;
-        const errorMessage =
-          axiosError.response?.data?.message ||
-          "Authentication failed. Please check your credentials.";
         commit(
           "SET_ERROR",
           axiosError.response?.data?.message || "Failed to fetch weather data"
@@ -225,66 +166,37 @@ const weatherModule: Module<WeatherState, RootState> = {
     },
 
     async fetchSavedLocations({ commit, state }) {
-      // Prevent multiple simultaneous calls
       if (state.fetchingLocations) {
-        console.log("Already fetching locations, skipping duplicate call");
         return;
       }
 
       try {
         commit("SET_FETCHING_LOCATIONS", true);
-        console.log("Fetching saved locations");
-
         const locations = await LocationService.getSavedLocations();
         commit("SET_SAVED_LOCATIONS", locations);
-        console.log(`Fetched ${locations.length} saved locations`);
       } catch (error) {
-        console.error("Error fetching saved locations:", error);
+        // Handle error silently
       } finally {
         commit("SET_FETCHING_LOCATIONS", false);
       }
     },
 
     async saveLocation({ commit }, locationData: Partial<Location>) {
-      try {
-        console.log(`Saving location: ${locationData.name}`);
-        const savedLocation = await LocationService.saveLocation(locationData);
-        commit("ADD_SAVED_LOCATION", savedLocation);
-        console.log(`Location saved: ${savedLocation.name}`);
-        return savedLocation;
-      } catch (error) {
-        console.error("Error saving location:", error);
-        throw error;
-      }
+      const savedLocation = await LocationService.saveLocation(locationData);
+      commit("ADD_SAVED_LOCATION", savedLocation);
+      return savedLocation;
     },
 
     async removeLocation({ commit }, locationId: string) {
-      try {
-        console.log(`Removing location with ID: ${locationId}`);
-        await LocationService.deleteLocation(locationId);
-        commit("REMOVE_SAVED_LOCATION", locationId);
-        console.log("Location removed successfully");
-      } catch (error) {
-        console.error("Error removing location:", error);
-        throw error;
-      }
+      await LocationService.deleteLocation(locationId);
+      commit("REMOVE_SAVED_LOCATION", locationId);
     },
 
     async selectLocation({ dispatch }, location: Location | string) {
-      try {
-        // If we have a location object with name property
-        if (typeof location === "object" && location.name) {
-          console.log(`Selecting location by object: ${location.name}`);
-          await dispatch("fetchWeatherByCity", location.name);
-        }
-        // If we just have a location name as string
-        else if (typeof location === "string") {
-          console.log(`Selecting location by string: ${location}`);
-          await dispatch("fetchWeatherByCity", location);
-        }
-      } catch (error) {
-        console.error("Error selecting location:", error);
-        throw error;
+      if (typeof location === "object" && location.name) {
+        await dispatch("fetchWeatherByCity", location.name);
+      } else if (typeof location === "string") {
+        await dispatch("fetchWeatherByCity", location);
       }
     },
   },

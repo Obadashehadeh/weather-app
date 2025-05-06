@@ -1,3 +1,4 @@
+<!-- src/components/DailyForecast.vue -->
 <template>
   <div class="daily-forecast" :class="{ 'dark-mode': isDarkMode }">
     <h2 class="text-lg font-semibold mb-4">5 Days Forecast:</h2>
@@ -8,25 +9,7 @@
         class="forecast-item"
       >
         <div class="weather-icon">
-          <div
-            v-if="day.condition === 'Sunny' || day.condition === 'Clear'"
-            class="icon-sunny"
-          ></div>
-          <div
-            v-else-if="
-              day.condition === 'Partly Cloudy' || day.condition === 'Clouds'
-            "
-            class="icon-partly-cloudy"
-          ></div>
-          <div
-            v-else-if="
-              day.condition === 'Rain' ||
-              day.condition === 'Rainy' ||
-              day.condition === 'Drizzle'
-            "
-            class="icon-rainy"
-          ></div>
-          <div v-else class="icon-default"></div>
+          <img :src="day.iconUrl" :alt="day.condition" class="w-10 h-10" />
         </div>
         <div class="forecast-day-info">
           <div class="day-name">{{ day.day }}, {{ day.date }}</div>
@@ -46,6 +29,7 @@ interface ForecastDay {
   date: string;
   temperature: number | string;
   condition: string;
+  iconUrl: string;
 }
 
 export default defineComponent({
@@ -53,23 +37,11 @@ export default defineComponent({
   props: {
     forecastData: {
       type: Array as () => ForecastDay[],
-      default: () => [
-        {
-          day: "Friday",
-          date: "1 Sep",
-          temperature: 20,
-          condition: "Partly Cloudy",
-        },
-        { day: "Saturday", date: "2 Sep", temperature: 22, condition: "Sunny" },
-        { day: "Sunday", date: "3 Sep", temperature: 27, condition: "Sunny" },
-        { day: "Monday", date: "4 Sep", temperature: 18, condition: "Rain" },
-        { day: "Tuesday", date: "5 Sep", temperature: 16, condition: "Rain" },
-      ],
+      default: () => [],
     },
   },
   setup() {
     const store = useStore();
-
     const isDarkMode = computed(() => store.state.theme.darkMode || false);
 
     return {
@@ -107,34 +79,6 @@ export default defineComponent({
         display: flex;
         align-items: center;
         justify-content: center;
-
-        .icon-sunny {
-          width: 2rem;
-          height: 2rem;
-          background-color: #facc15;
-          border-radius: 50%;
-        }
-
-        .icon-partly-cloudy {
-          width: 2rem;
-          height: 2rem;
-          background-color: #d1d5db;
-          border-radius: 50%;
-        }
-
-        .icon-rainy {
-          width: 2rem;
-          height: 2rem;
-          background-color: #93c5fd;
-          border-radius: 50%;
-        }
-
-        .icon-default {
-          width: 2rem;
-          height: 2rem;
-          background-color: #d1d5db;
-          border-radius: 50%;
-        }
       }
 
       .forecast-day-info {

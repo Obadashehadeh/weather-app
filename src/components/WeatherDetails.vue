@@ -1,3 +1,4 @@
+<!-- src/components/WeatherDetails.vue -->
 <template>
   <div
     class="weather-details h-full w-full space-x-4"
@@ -23,32 +24,11 @@
       </div>
     </div>
     <div class="flex flex-col justify-between weather-icon">
-      <div
-        class="sun-icon"
-        v-if="condition === 'Clear' || condition === 'Sunny'"
-      >
-        <div
-          class="w-16 h-16 md:w-20 md:h-20 lg:w-28 lg:h-28 bg-yellow-400 rounded-full flex items-center justify-center"
-        >
-          <div class="rays"></div>
-        </div>
-      </div>
-      <div
-        v-else-if="condition === 'Clouds' || condition === 'Partly Cloudy'"
-        class="w-16 h-16 md:w-20 md:h-20 lg:w-28 lg:h-28 bg-gray-300 rounded-full"
-      ></div>
-      <div
-        v-else-if="
-          condition === 'Rain' ||
-          condition === 'Rainy' ||
-          condition === 'Drizzle'
-        "
-        class="w-16 h-16 md:w-20 md:h-20 lg:w-28 lg:h-28 bg-blue-300 rounded-full"
-      ></div>
-      <div
-        v-else
-        class="w-16 h-16 md:w-20 md:h-20 lg:w-28 lg:h-28 bg-gray-300 rounded-full"
-      ></div>
+      <img
+        :src="iconUrl"
+        :alt="condition"
+        class="w-16 h-16 md:w-20 md:h-20 lg:w-28 lg:h-28"
+      />
       <div
         class="weather-condition text-xl md:text-2xl font-medium text-center mb-6"
       >
@@ -110,6 +90,10 @@ export default defineComponent({
       type: String,
       default: "Sunny",
     },
+    iconUrl: {
+      type: String,
+      default: "",
+    },
     sunriseTime: {
       type: String,
       default: "06:37 AM",
@@ -165,26 +149,6 @@ export default defineComponent({
     align-items: center;
     height: -webkit-fill-available;
     justify-content: space-between;
-  }
-  .sun-icon {
-    position: relative;
-
-    .rays {
-      position: absolute;
-      top: -15px;
-      left: -15px;
-      right: -15px;
-      bottom: -15px;
-
-      &:before,
-      &:after {
-        content: "";
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        background: #facc15;
-      }
-    }
   }
 }
 </style>

@@ -121,10 +121,8 @@ export default defineComponent({
 
         await store.dispatch("weather/fetchSavedLocations");
 
-        console.log("Login successful, redirecting to home");
         router.push({ name: "home" });
       } catch (error) {
-        console.error("Authentication error:", error);
         const axiosError = error as AxiosError<any>;
 
         if (axiosError.response) {

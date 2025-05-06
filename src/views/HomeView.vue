@@ -32,6 +32,7 @@
               :temperature="weather.temperature"
               :feels-like="weather.feelsLike"
               :condition="weather.condition"
+              :icon-url="weather.iconUrl"
               :sunrise-time="weather.sunrise"
               :sunset-time="weather.sunset"
               :humidity="weather.humidity"
@@ -76,7 +77,6 @@ export default defineComponent({
   },
   setup() {
     const store = useStore();
-    // Flag to prevent multiple API calls
     const initialLoadDone = ref(false);
 
     const isDarkMode = computed(() => store.state.theme.darkMode);
@@ -89,12 +89,10 @@ export default defineComponent({
     const error = computed(() => store.state.weather.error);
 
     const searchCity = (city: string) => {
-      console.log(`Searching for city: ${city}`);
       store.dispatch("weather/fetchWeatherByCity", city);
     };
 
     const getCurrentLocation = () => {
-      console.log("Getting current location");
       store.dispatch("weather/fetchWeatherByLocation");
     };
 
@@ -107,33 +105,22 @@ export default defineComponent({
     };
 
     onMounted(async () => {
-      console.log("HomeView mounted");
       if (initialLoadDone.value) {
-        console.log("Initial load already done, skipping");
         return;
       }
 
-      // Initialize theme
       store.dispatch("theme/initTheme");
-
-      // Check auth status
       store.dispatch("auth/checkAuth");
 
-      // Fetch saved locations only once if authenticated
       if (isAuthenticated.value) {
-        console.log("User is authenticated, fetching saved locations");
         try {
           await store.dispatch("weather/fetchSavedLocations");
         } catch (error) {
-          console.error("Error fetching saved locations:", error);
+          // Handle error silently
         }
       }
 
-      // Load default city
-      console.log("Loading default city (Athens)");
       searchCity("Athens");
-
-      // Mark initial load as done
       initialLoadDone.value = true;
     });
 

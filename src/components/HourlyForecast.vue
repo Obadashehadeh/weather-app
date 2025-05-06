@@ -1,3 +1,4 @@
+<!-- src/components/HourlyForecast.vue -->
 <template>
   <div class="hourly-forecast" :class="{ 'dark-mode': isDarkMode }">
     <h2 class="text-lg font-semibold mb-4">Hourly Forecast:</h2>
@@ -6,37 +7,16 @@
         v-for="(hour, index) in forecastData"
         :key="index"
         class="forecast-item"
-        :class="{
-          active: hour.active,
-          daytime: hour.condition === 'Sunny' || hour.condition === 'Clear',
-          nighttime: hour.condition === 'Clear' && isNightTime(hour.time),
-          cloudy: hour.condition === 'Clouds' || hour.condition === 'Cloudy',
-          rainy:
-            hour.condition === 'Rain' ||
-            hour.condition === 'Rainy' ||
-            hour.condition === 'Drizzle' ||
-            hour.condition === 'Showers',
-        }"
+        :class="{ active: hour.active }"
       >
         <div class="forecast-item-inner">
           <div class="forecast-time">{{ hour.time }}</div>
           <div class="forecast-icon">
-            <div
-              v-if="hour.condition === 'Sunny' || hour.condition === 'Clear'"
-              class="w-10 h-10 bg-yellow-400 rounded-full mx-auto"
-            ></div>
-            <div
-              v-else-if="
-                hour.condition === 'Clouds' ||
-                hour.condition === 'Cloudy' ||
-                hour.condition === 'Partly Cloudy'
-              "
-              class="w-10 h-10 bg-gray-300 rounded-full mx-auto"
-            ></div>
-            <div
-              v-else
-              class="w-10 h-10 bg-blue-300 rounded-full mx-auto"
-            ></div>
+            <img
+              :src="hour.iconUrl"
+              :alt="hour.condition"
+              class="w-10 h-10 mx-auto"
+            />
           </div>
           <div class="forecast-temp">{{ hour.temperature }}°C</div>
           <div class="forecast-wind">{{ hour.windSpeed }}km/h</div>
@@ -54,6 +34,7 @@ interface ForecastHour {
   time: string;
   temperature: number | string;
   condition: string;
+  iconUrl: string;
   windSpeed: number | string;
   active?: boolean;
 }
@@ -63,39 +44,15 @@ export default defineComponent({
   props: {
     forecastData: {
       type: Array as () => ForecastHour[],
-      default: () => [
-        {
-          time: "12:00",
-          temperature: 26,
-          condition: "Sunny",
-          windSpeed: 3,
-          active: true,
-        },
-        { time: "15:00", temperature: 27, condition: "Sunny", windSpeed: 2 },
-        {
-          time: "18:00",
-          temperature: 27,
-          condition: "Clouds",
-          windSpeed: 2,
-        },
-        { time: "21:00", temperature: 25, condition: "Rain", windSpeed: 3 },
-        { time: "00:00", temperature: 22, condition: "Clear", windSpeed: 3 },
-      ],
+      default: () => [],
     },
   },
   setup() {
     const store = useStore();
-
     const isDarkMode = computed(() => store.state.theme?.darkMode || false);
-
-    const isNightTime = (timeString: string) => {
-      const hour = parseInt(timeString.split(":")[0]);
-      return hour >= 20 || hour < 6;
-    };
 
     return {
       isDarkMode,
-      isNightTime,
     };
   },
 });
@@ -147,43 +104,17 @@ export default defineComponent({
       background-color: #e0e0e0;
       color: #333;
 
-      &.daytime {
-        background-color: #ffb74d;
-      }
-
-      &.nighttime {
-        background-color: #5c6bc0;
-        color: white;
-      }
-
-      &.cloudy {
-        background-color: #b0bec5;
-      }
-
-      &.rainy {
-        background-color: #64b5f6;
+      &.active {
+        background-color: #4cd964;
         color: white;
       }
 
       .dark-mode & {
-        &.daytime {
-          background-color: #e65100;
-          color: white;
-        }
+        background-color: #333;
+        color: #fff;
 
-        &.nighttime {
-          background-color: #303f9f;
-          color: white;
-        }
-
-        &.cloudy {
-          background-color: #546e7a;
-          color: white;
-        }
-
-        &.rainy {
-          background-color: #1976d2;
-          color: white;
+        &.active {
+          background-color: #2a8f3c;
         }
       }
 
