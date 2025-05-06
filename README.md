@@ -2,8 +2,6 @@
 
 A modern Vue.js application for checking weather conditions and forecasts.
 
-![Weather Dashboard Screenshot](screenshot.png)
-
 ## Features
 
 - **Current Weather Display**: View real-time weather conditions for any location
@@ -22,8 +20,6 @@ A modern Vue.js application for checking weather conditions and forecasts.
 - **SCSS**: Styling with variables and nesting
 - **Axios**: HTTP client for API requests
 - **Font Awesome**: Icon library
-- **Jest**: Unit testing
-- **Vue Test Utils**: Component testing utilities
 
 ## Prerequisites
 
@@ -77,25 +73,6 @@ yarn build
 ```
 
 The build artifacts will be stored in the `dist/` directory.
-
-## Testing
-
-Run unit tests:
-
-```bash
-npm run test:unit
-# or
-yarn test:unit
-```
-
-Run linting:
-
-```bash
-npm run lint
-# or
-yarn lint
-```
-
 ## Project Structure
 
 ```
@@ -138,15 +115,3 @@ The frontend communicates with the backend API to:
 - Authenticate users
 - Fetch weather data
 - Save and manage locations
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch: `git checkout -b feature/my-new-feature`
-3. Commit your changes: `git commit -am 'Add some feature'`
-4. Push to the branch: `git push origin feature/my-new-feature`
-5. Submit a pull request
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
